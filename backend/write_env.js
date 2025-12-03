@@ -1,6 +1,13 @@
-PORT=5001
+const fs = require('fs');
+const path = require('path');
+
+const content = `PORT=5001
 MONGO_URI=mongodb+srv://adinathhanumantgore_db_user:rqSZw5DMChpP8PaC@cluster0.eyuoilj.mongodb.net/alumniprofiles?appName=Cluster0
 JWT_SECRET=3e8ad4f9c27b1f56ae907d4a63fba219d702e4bc34c1a9fbb89e2c17da3ef08c
 JWT_EXPIRE=30d
 NODE_ENV=development
 CORS_ORIGIN=http://localhost:5173
+`;
+
+fs.writeFileSync(path.join(__dirname, '.env'), content);
+console.log('.env updated successfully');
