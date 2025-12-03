@@ -97,5 +97,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0'; // Required for Render deployment
 
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, HOST, () => console.log(`Server running on ${HOST}:${PORT}`));
