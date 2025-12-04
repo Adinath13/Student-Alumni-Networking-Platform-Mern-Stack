@@ -24,26 +24,29 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     };
 
     return (
-        <div className="modal-backdrop" onClick={onClose}>
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+            onClick={onClose}
+        >
             <div
-                className={`bg-white rounded-lg shadow-xl w-full ${sizes[size]} mx-4 animate-fade-in`}
+                className={`relative bg-white rounded-xl shadow-2xl w-full ${sizes[size]} mx-auto my-8 animate-fade-in flex flex-col max-h-[90vh]`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <h3 className="text-xl font-semibold text-gray-900">
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
+                    <h3 className="text-xl font-bold text-gray-900">
                         {title}
                     </h3>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600:text-gray-300 transition-colors"
+                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
                     >
-                        <X size={24} />
+                        <X size={20} />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
+                <div className="p-6 overflow-y-auto custom-scrollbar">
                     {children}
                 </div>
             </div>
