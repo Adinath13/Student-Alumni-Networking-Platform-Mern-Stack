@@ -16,10 +16,15 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 
+
 // Support multiple origins (comma-separated in env variable)
 const allowedOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
     : ['http://localhost:5173'];
+
+console.log('🔧 CORS Configuration:');
+console.log('   Allowed Origins:', allowedOrigins);
+console.log('   Credentials: true');
 
 const io = new Server(server, {
     cors: {
@@ -62,21 +67,36 @@ io.on('connection', (socket) => {
     });
 });
 
-// Middleware
+// CORS Middleware - Must be before other middleware
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
+        // Allow requests with no origin (like mobile apps, curl, or Postman)
+        if (!origin) {
+            console.log('⚠️  Request with no origin header (allowed)');
+            return callback(null, true);
+        }
 
-        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+        console.log(`🔍 CORS check for origin: ${origin}`);
+
+        // Check if origin is in allowed list
+        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+            console.log(`✅ Origin allowed: ${origin}`);
             callback(null, true);
         } else {
-            console.warn(`CORS blocked origin: ${origin}. Allowed origins:`, allowedOrigins);
+            console.error(`❌ CORS BLOCKED: ${origin}`);
+            console.error(`   Allowed origins:`, allowedOrigins);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 600 // Cache preflight for 10 minutes
 }));
+
+// Explicit OPTIONS handler for preflight requests
+app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
