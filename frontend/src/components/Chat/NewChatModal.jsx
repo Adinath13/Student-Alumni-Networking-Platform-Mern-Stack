@@ -3,6 +3,8 @@ import { useChat } from '../../context/ChatContext';
 import axios from 'axios';
 import { X, Search } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
 const NewChatModal = ({ isOpen, onClose }) => {
     const [users, setUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -21,7 +23,7 @@ const NewChatModal = ({ isOpen, onClose }) => {
             const config = {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             };
-            const { data } = await axios.get('http://localhost:5001/api/chat/users', config);
+            const { data } = await axios.get(`${API_URL}/api/chat/users`, config);
             setUsers(data);
         } catch (error) {
             console.error('Error fetching users:', error);

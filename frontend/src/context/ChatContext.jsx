@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext, useRef } from 'react';
+import { createContext, useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
@@ -6,6 +6,8 @@ import { useAuth } from './AuthContext';
 const ChatContext = createContext();
 
 export const useChat = () => useContext(ChatContext);
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 export const ChatProvider = ({ children }) => {
     const { user } = useAuth();
@@ -15,10 +17,48 @@ export const ChatProvider = ({ children }) => {
     const [messages, setMessages] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState([]);
 
+    // Fetch Conversations - memoized with useCallback to prevent infinite loops
+    const fetchConversations = useCallback(async () => {
+        if (!user) return;
+
+        try {
+            const config = {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            };
+            const { data } = await axios.get(`${API_URL}/api/chat/conversations`, config);
+
+            console.log('[ChatContext] Fetched conversations:', data);
+            console.log('[ChatContext] Number of conversations:', data.length);
+
+            // Filter out any conversations that might include admin users
+            // Only filter if participants are populated
+            const filteredConversations = data.filter(conv => {
+                if (!conv.participants || conv.participants.length === 0) {
+                    console.warn('[ChatContext] Conversation missing participants:', conv);
+                    return false;
+                }
+
+                // Check if any participant is an admin
+                const hasAdmin = conv.participants.some(p => p && p.role === 'admin');
+                if (hasAdmin) {
+                    console.log('[ChatContext] Filtering out conversation with admin:', conv._id);
+                }
+                return !hasAdmin;
+            });
+
+            console.log('[ChatContext] Filtered conversations:', filteredConversations);
+            console.log('[ChatContext] Number of filtered conversations:', filteredConversations.length);
+            setConversations(filteredConversations);
+        } catch (error) {
+            console.error("[ChatContext] Error fetching conversations:", error);
+            console.error("[ChatContext] Error response:", error.response?.data);
+        }
+    }, [user]);
+
     // Initialize Socket
     useEffect(() => {
         if (user) {
-            const newSocket = io('http://localhost:5001'); // Connected to backend server
+            const newSocket = io(API_URL);
             setSocket(newSocket);
 
             newSocket.emit('join_chat', user._id);
@@ -52,8 +92,20 @@ export const ChatProvider = ({ children }) => {
                 });
             }
 
-            // Always refresh conversations list to update previews/unread
-            fetchConversations();
+            // Update conversation list to show new message preview
+            // But use state updater to avoid fetching from server
+            setConversations((prevConversations) => {
+                return prevConversations.map(conv => {
+                    if (conv._id === message.conversationId) {
+                        return {
+                            ...conv,
+                            lastMessage: message,
+                            updatedAt: new Date()
+                        };
+                    }
+                    return conv;
+                });
+            });
         };
 
         socket.on('receive_message', handleReceiveMessage);
@@ -63,50 +115,14 @@ export const ChatProvider = ({ children }) => {
         };
     }, [socket]);
 
-    // Fetch Conversations
-    const fetchConversations = async () => {
-        try {
-            const config = {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            };
-            const { data } = await axios.get('http://localhost:5001/api/chat/conversations', config);
-
-            console.log('[ChatContext] Fetched conversations:', data);
-            console.log('[ChatContext] Number of conversations:', data.length);
-
-            // Filter out any conversations that might include admin users
-            // Only filter if participants are populated
-            const filteredConversations = data.filter(conv => {
-                if (!conv.participants || conv.participants.length === 0) {
-                    console.warn('[ChatContext] Conversation missing participants:', conv);
-                    return false;
-                }
-
-                // Check if any participant is an admin
-                const hasAdmin = conv.participants.some(p => p && p.role === 'admin');
-                if (hasAdmin) {
-                    console.log('[ChatContext] Filtering out conversation with admin:', conv._id);
-                }
-                return !hasAdmin;
-            });
-
-            console.log('[ChatContext] Filtered conversations:', filteredConversations);
-            console.log('[ChatContext] Number of filtered conversations:', filteredConversations.length);
-            setConversations(filteredConversations);
-        } catch (error) {
-            console.error("[ChatContext] Error fetching conversations:", error);
-            console.error("[ChatContext] Error response:", error.response?.data);
-        }
-    };
-
     // Fetch Messages
-    const fetchMessages = async (conversationId) => {
+    const fetchMessages = useCallback(async (conversationId) => {
         try {
             console.log('[ChatContext] Fetching messages for conversation:', conversationId);
             const config = {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             };
-            const { data } = await axios.get(`http://localhost:5001/api/chat/messages/${conversationId}`, config);
+            const { data } = await axios.get(`${API_URL}/api/chat/messages/${conversationId}`, config);
             console.log('[ChatContext] Fetched messages:', data);
             console.log('[ChatContext] Number of messages:', data.length);
             setMessages(data);
@@ -118,16 +134,16 @@ export const ChatProvider = ({ children }) => {
             console.error("[ChatContext] Error fetching messages:", error);
             console.error("[ChatContext] Error response:", error.response?.data);
         }
-    };
+    }, [conversations]);
 
     // Send Message
-    const sendMessage = async (conversationId, text, receiverId) => {
+    const sendMessage = useCallback(async (conversationId, text, receiverId) => {
         try {
             console.log('[ChatContext] Sending message:', { conversationId, text, receiverId });
             const config = {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             };
-            const { data } = await axios.post('http://localhost:5001/api/chat/message', {
+            const { data } = await axios.post(`${API_URL}/api/chat/message`, {
                 conversationId,
                 text
             }, config);
@@ -142,21 +158,35 @@ export const ChatProvider = ({ children }) => {
                 console.warn('[ChatContext] Socket not available, message not emitted via socket');
             }
 
-            setMessages([...messages, data]);
-            fetchConversations(); // Update list
+            // Update messages locally
+            setMessages(prev => [...prev, data]);
+
+            // Update conversation list locally instead of fetching
+            setConversations(prevConversations => {
+                return prevConversations.map(conv => {
+                    if (conv._id === conversationId) {
+                        return {
+                            ...conv,
+                            lastMessage: data,
+                            updatedAt: new Date()
+                        };
+                    }
+                    return conv;
+                });
+            });
         } catch (error) {
             console.error("[ChatContext] Error sending message:", error);
             console.error("[ChatContext] Error response:", error.response?.data);
         }
-    };
+    }, [socket]);
 
     // Create or Get Conversation
-    const createConversation = async (receiverId) => {
+    const createConversation = useCallback(async (receiverId) => {
         try {
             const config = {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             };
-            const { data } = await axios.post('http://localhost:5001/api/chat/conversation', { receiverId }, config);
+            const { data } = await axios.post(`${API_URL}/api/chat/conversation`, { receiverId }, config);
 
             // Check if it already exists in list
             if (!conversations.find(c => c._id === data._id)) {
@@ -168,13 +198,14 @@ export const ChatProvider = ({ children }) => {
         } catch (error) {
             console.error("Error creating conversation", error);
         }
-    };
+    }, [conversations, fetchMessages]);
 
+    // Fetch conversations only once when user is available
     useEffect(() => {
         if (user) {
             fetchConversations();
         }
-    }, [user]);
+    }, [user, fetchConversations]);
 
     return (
         <ChatContext.Provider value={{
