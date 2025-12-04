@@ -102,7 +102,7 @@ const JobsPage = () => {
                 {['admin', 'alumni', 'tpo'].includes(user?.role) && (
                     <button
                         onClick={() => setShowModal(true)}
-                        className="px-4 py-2 bg-primary text-white rounded-md font-medium"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium shadow-sm"
                     >
                         Post Job
                     </button>
@@ -260,8 +260,8 @@ const JobsPage = () => {
                                                 onClick={() => handleApply(job)}
                                                 disabled={job.applications?.some(app => app.student === user?._id)}
                                                 className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white ${job.applications?.some(app => app.student === user?._id)
-                                                        ? 'bg-green-600 cursor-default'
-                                                        : 'bg-indigo-600 hover:bg-indigo-700'
+                                                    ? 'bg-green-600 cursor-default'
+                                                    : 'bg-indigo-600 hover:bg-indigo-700'
                                                     }`}
                                             >
                                                 {job.applications?.some(app => app.student === user?._id) ? 'Applied' : 'Apply Now'}

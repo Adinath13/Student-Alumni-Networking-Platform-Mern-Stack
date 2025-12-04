@@ -81,7 +81,7 @@ const EventsPage = () => {
                 {['admin', 'alumni', 'tpo'].includes(user?.role) && (
                     <button
                         onClick={() => setShowModal(true)}
-                        className="px-4 py-2 bg-primary text-white rounded-md font-medium"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium shadow-sm"
                     >
                         Create Event
                     </button>
@@ -214,8 +214,8 @@ const EventsPage = () => {
                                     onClick={() => handleRegister(event._id)}
                                     disabled={event.registrations?.some(r => r.user === user?._id) || event.attendees?.includes(user?._id)}
                                     className={`flex-1 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${(event.registrations?.some(r => r.user === user?._id) || event.attendees?.includes(user?._id))
-                                            ? 'bg-green-600 hover:bg-green-700 cursor-default'
-                                            : 'bg-primary hover:bg-indigo-700'
+                                        ? 'bg-green-600 hover:bg-green-700 cursor-default'
+                                        : 'bg-primary hover:bg-indigo-700'
                                         }`}
                                 >
                                     {(event.registrations?.some(r => r.user === user?._id) || event.attendees?.includes(user?._id)) ? 'Registered' : 'Register Now'}
