@@ -110,7 +110,7 @@ const RegisterPage = () => {
                                 </Select>
                             </div>
                             <Button
-                                className="w-full bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600 text-white font-bold py-2 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg"
                                 type="submit"
                                 disabled={isLoading}
                             >
