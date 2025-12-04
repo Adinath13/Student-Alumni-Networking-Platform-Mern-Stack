@@ -24,15 +24,39 @@ const AlumniDirectory = () => {
 
     const fetchData = async () => {
         try {
+            console.log('🔄 Fetching alumni data...');
+            console.log('API Base URL:', import.meta.env.VITE_API_URL || 'http://localhost:5001/api');
+
             const [alumniRes, mentorRes] = await Promise.all([
                 axios.get('/alumni'),
                 axios.get('/mentor-applications/verified/all')
             ]);
+
+            console.log('✅ Alumni data received:', {
+                count: alumniRes.data.length,
+                sample: alumniRes.data[0] ? {
+                    name: alumniRes.data[0].user?.name,
+                    company: alumniRes.data[0].currentCompany
+                } : 'No data'
+            });
+            console.log('✅ Mentor applications received:', mentorRes.data.length);
+
             setAlumni(alumniRes.data);
             setMentorApplications(mentorRes.data);
             setLoading(false);
         } catch (error) {
-            console.error(error);
+            console.error('❌ Error fetching data:');
+            console.error('   Message:', error.message);
+            console.error('   Response:', error.response?.data);
+            console.error('   Status:', error.response?.status);
+            console.error('   Full error:', error);
+
+            toast({
+                title: "Error Loading Data",
+                description: error.response?.data?.message || error.message || "Failed to load alumni directory. Please check your connection.",
+                variant: "destructive"
+            });
+
             setLoading(false);
         }
     };

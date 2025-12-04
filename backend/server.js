@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // Load env vars
@@ -99,6 +100,47 @@ app.use('/api/gallery', require('./routes/galleryRoutes'));
 app.use('/api/news', require('./routes/newsRoutes'));
 app.use('/api/testimonials', require('./routes/testimonialRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+    });
+});
+
+// Debug endpoint to check database and collections
+app.get('/api/debug/info', async (req, res) => {
+    try {
+        const AlumniProfile = require('./models/AlumniProfile');
+        const User = require('./models/User');
+
+        const alumniCount = await AlumniProfile.countDocuments();
+        const userCount = await User.countDocuments();
+        const collections = await mongoose.connection.db.listCollections().toArray();
+
+        res.json({
+            database: {
+                name: mongoose.connection.name,
+                host: mongoose.connection.host,
+                status: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+            },
+            collections: collections.map(c => c.name),
+            counts: {
+                alumni: alumniCount,
+                users: userCount
+            },
+            sampleAlumni: await AlumniProfile.findOne().populate('user', ['name', 'email'])
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: error.message,
+            stack: process.env.NODE_ENV === 'production' ? null : error.stack
+        });
+    }
+});
 
 
 // Error Handler

@@ -79,11 +79,32 @@ const getCurrentAlumniProfile = async (req, res) => {
 // @access  Public
 const getAllAlumni = async (req, res) => {
     try {
+        console.log('📋 Fetching all alumni profiles...');
+
         const profiles = await AlumniProfile.find().populate('user', ['name', 'email']);
+
+        console.log(`✅ Found ${profiles.length} alumni profiles`);
+
+        if (profiles.length > 0) {
+            console.log('   Sample profile:', {
+                id: profiles[0]._id,
+                userName: profiles[0].user?.name,
+                company: profiles[0].currentCompany,
+                hasUser: !!profiles[0].user
+            });
+        } else {
+            console.log('⚠️  No alumni profiles found in database!');
+        }
+
         res.json(profiles);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error('❌ Error fetching alumni profiles:');
+        console.error(`   Message: ${err.message}`);
+        console.error(`   Stack:`, err.stack);
+        res.status(500).json({
+            message: 'Server Error fetching alumni profiles',
+            error: err.message
+        });
     }
 };
 
