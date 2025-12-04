@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
-import axios from 'axios';
+import axios from '../utils/axios';
 import { useAuth } from './AuthContext';
 
 const ChatContext = createContext();
@@ -22,10 +22,7 @@ export const ChatProvider = ({ children }) => {
         if (!user) return;
 
         try {
-            const config = {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            };
-            const { data } = await axios.get(`${API_URL}/api/chat/conversations`, config);
+            const { data } = await axios.get('/chat/conversations');
 
             console.log('[ChatContext] Fetched conversations:', data);
             console.log('[ChatContext] Number of conversations:', data.length);
@@ -119,10 +116,7 @@ export const ChatProvider = ({ children }) => {
     const fetchMessages = useCallback(async (conversationId) => {
         try {
             console.log('[ChatContext] Fetching messages for conversation:', conversationId);
-            const config = {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            };
-            const { data } = await axios.get(`${API_URL}/api/chat/messages/${conversationId}`, config);
+            const { data } = await axios.get(`/chat/messages/${conversationId}`);
             console.log('[ChatContext] Fetched messages:', data);
             console.log('[ChatContext] Number of messages:', data.length);
             setMessages(data);
@@ -140,13 +134,10 @@ export const ChatProvider = ({ children }) => {
     const sendMessage = useCallback(async (conversationId, text, receiverId) => {
         try {
             console.log('[ChatContext] Sending message:', { conversationId, text, receiverId });
-            const config = {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            };
-            const { data } = await axios.post(`${API_URL}/api/chat/message`, {
+            const { data } = await axios.post('/chat/message', {
                 conversationId,
                 text
-            }, config);
+            });
 
             console.log('[ChatContext] Message sent successfully:', data);
 
@@ -183,10 +174,7 @@ export const ChatProvider = ({ children }) => {
     // Create or Get Conversation
     const createConversation = useCallback(async (receiverId) => {
         try {
-            const config = {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            };
-            const { data } = await axios.post(`${API_URL}/api/chat/conversation`, { receiverId }, config);
+            const { data } = await axios.post('/chat/conversation', { receiverId });
 
             // Check if it already exists in list
             if (!conversations.find(c => c._id === data._id)) {
