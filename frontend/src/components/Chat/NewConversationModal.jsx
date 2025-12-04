@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../../utils/axios';
 import Modal from '../Modal';
 import { Search, Award, Users } from 'lucide-react';
 
@@ -20,7 +20,7 @@ const NewConversationModal = ({ isOpen, onClose, onSelectUser }) => {
             const config = {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             };
-            const { data } = await axios.get('http://localhost:5001/api/chat/users', config);
+            const { data } = await axios.get('/chat/users');
             setUsers(data);
         } catch (error) {
             console.error("Error fetching users:", error);
