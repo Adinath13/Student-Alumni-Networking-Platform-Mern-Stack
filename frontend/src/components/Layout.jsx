@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import Footer from './Footer';
 import { useAuth } from '../context/AuthContext';
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area" // I need to create ScrollArea or just use div
@@ -11,10 +12,10 @@ const Layout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-white font-sans antialiased">
+        <div className="min-h-screen bg-white font-sans antialiased flex flex-col">
             <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
-            <div className="flex min-h-[calc(100vh-4rem)]">
+            <div className="flex flex-1">
                 {user && (
                     <>
                         {/* Desktop Sidebar */}
@@ -39,6 +40,7 @@ const Layout = ({ children }) => {
                     {children}
                 </main>
             </div>
+            <Footer />
             <Toaster />
         </div>
     );
