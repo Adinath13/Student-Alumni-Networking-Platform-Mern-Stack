@@ -1,7 +1,18 @@
 const nodemailer = require('nodemailer');
 
+// Check if email service is configured
+const isEmailConfigured = () => {
+    const hasEmailUser = process.env.EMAIL_USER && process.env.EMAIL_USER.trim() !== '';
+    const hasEmailPassword = process.env.EMAIL_PASSWORD && process.env.EMAIL_PASSWORD.trim() !== '';
+    return hasEmailUser && hasEmailPassword;
+};
+
 // Create reusable transporter object using SMTP transport
 const createTransporter = () => {
+    if (!isEmailConfigured()) {
+        throw new Error('Email service is not configured. Please set EMAIL_USER and EMAIL_PASSWORD environment variables.');
+    }
+
     return nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE || 'gmail',
         auth: {
@@ -14,6 +25,16 @@ const createTransporter = () => {
 // Send verification email
 const sendVerificationEmail = async (email, name, verificationToken) => {
     try {
+        // Check if email service is configured
+        if (!isEmailConfigured()) {
+            console.warn('⚠️ Email service not configured. Skipping verification email.');
+            return {
+                success: false,
+                error: 'EMAIL_NOT_CONFIGURED',
+                message: 'Email service is not configured'
+            };
+        }
+
         const transporter = createTransporter();
         const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
 
@@ -143,7 +164,22 @@ const sendVerificationEmail = async (email, name, verificationToken) => {
         return { success: true, messageId: info.messageId };
     } catch (error) {
         console.error('❌ Error sending verification email:', error);
-        throw new Error('Failed to send verification email');
+
+        // Provide more specific error information
+        if (error.message.includes('Email service is not configured')) {
+            return {
+                success: false,
+                error: 'EMAIL_NOT_CONFIGURED',
+                message: error.message
+            };
+        }
+
+        return {
+            success: false,
+            error: 'EMAIL_SEND_FAILED',
+            message: 'Failed to send verification email',
+            details: error.message
+        };
     }
 };
 
@@ -245,4 +281,5 @@ const sendPasswordResetEmail = async (email, name, resetToken) => {
 module.exports = {
     sendVerificationEmail,
     sendPasswordResetEmail,
+    isEmailConfigured,
 };

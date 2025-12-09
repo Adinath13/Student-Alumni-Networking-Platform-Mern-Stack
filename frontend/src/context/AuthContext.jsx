@@ -46,7 +46,13 @@ export const AuthProvider = ({ children }) => {
         try {
             setError(null);
             const { data } = await axios.post('/auth/register', userData);
-            // No longer auto-login, just return the response with email
+
+            // If email verification is not required (auto-verified), log the user in
+            if (!data.requiresVerification && data.token) {
+                localStorage.setItem('token', data.token);
+                setUser(data.user);
+            }
+
             return data;
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed');

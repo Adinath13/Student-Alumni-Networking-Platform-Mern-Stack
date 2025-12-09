@@ -32,8 +32,15 @@ const RegisterPage = () => {
         setIsLoading(true);
         try {
             const response = await register(formData);
-            // Redirect to registration success page with email
-            navigate('/registration-success', { state: { email: response.email || formData.email } });
+
+            // If email verification is not required, user is auto-logged in
+            if (!response.requiresVerification) {
+                // Redirect to dashboard
+                navigate('/dashboard');
+            } else {
+                // Redirect to registration success page with email
+                navigate('/registration-success', { state: { email: response.email || formData.email } });
+            }
         } catch (err) {
             // Error handled in context
         } finally {

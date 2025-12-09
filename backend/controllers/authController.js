@@ -48,20 +48,85 @@ const registerUser = async (req, res) => {
 
             // Send verification email
             try {
-                await sendVerificationEmail(user.email, user.name, verificationToken);
-                console.log('✅ User registered successfully:', { id: user._id, email: user.email, role: user.role });
+                const emailResult = await sendVerificationEmail(user.email, user.name, verificationToken);
+
+                if (emailResult.success) {
+                    console.log('✅ User registered successfully with email verification:', { id: user._id, email: user.email, role: user.role });
+
+                    res.status(201).json({
+                        success: true,
+                        message: 'Registration successful! Please check your email to verify your account.',
+                        email: user.email,
+                        requiresVerification: true,
+                    });
+                } else if (emailResult.error === 'EMAIL_NOT_CONFIGURED') {
+                    // Email service not configured - allow registration without verification
+                    console.log('⚠️ User registered without email verification (email service not configured):', { id: user._id, email: user.email, role: user.role });
+
+                    // Auto-verify the user since we can't send email
+                    user.isEmailVerified = true;
+                    user.emailVerificationToken = undefined;
+                    user.emailVerificationExpires = undefined;
+                    await user.save();
+
+                    res.status(201).json({
+                        success: true,
+                        message: 'Registration successful! You can now log in.',
+                        email: user.email,
+                        requiresVerification: false,
+                        token: generateToken(user._id),
+                        user: {
+                            _id: user._id,
+                            name: user.name,
+                            email: user.email,
+                            role: user.role,
+                        }
+                    });
+                } else {
+                    // Email sending failed for other reasons
+                    console.error('❌ Failed to send verification email:', emailResult);
+
+                    // Auto-verify the user as fallback
+                    user.isEmailVerified = true;
+                    user.emailVerificationToken = undefined;
+                    user.emailVerificationExpires = undefined;
+                    await user.save();
+
+                    res.status(201).json({
+                        success: true,
+                        message: 'Registration successful! Email verification unavailable. You can now log in.',
+                        email: user.email,
+                        requiresVerification: false,
+                        token: generateToken(user._id),
+                        user: {
+                            _id: user._id,
+                            name: user.name,
+                            email: user.email,
+                            role: user.role,
+                        }
+                    });
+                }
+            } catch (emailError) {
+                // Unexpected error - auto-verify as fallback
+                console.error('❌ Unexpected error during email verification:', emailError);
+
+                user.isEmailVerified = true;
+                user.emailVerificationToken = undefined;
+                user.emailVerificationExpires = undefined;
+                await user.save();
 
                 res.status(201).json({
                     success: true,
-                    message: 'Registration successful! Please check your email to verify your account.',
+                    message: 'Registration successful! You can now log in.',
                     email: user.email,
-                });
-            } catch (emailError) {
-                // If email fails, delete the user and return error
-                await User.findByIdAndDelete(user._id);
-                console.error('❌ Failed to send verification email:', emailError);
-                return res.status(500).json({
-                    message: 'Registration failed. Could not send verification email. Please try again.',
+                    requiresVerification: false,
+                    token: generateToken(user._id),
+                    user: {
+                        _id: user._id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                    }
                 });
             }
         } else {
