@@ -191,6 +191,62 @@ const ProfilePage = () => {
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Email Verification Section */}
+                            <div className="border-b pb-6">
+                                <h3 className="text-lg font-semibold mb-4">Email Verification</h3>
+                                <div className="bg-muted/30 rounded-lg p-4">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                                <span className="text-sm font-medium">Email Address</span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
+                                            <div className="flex items-center gap-2">
+                                                {user.isEmailVerified ? (
+                                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                        <ShieldCheck className="h-3 w-3" />
+                                                        Verified
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                                        <ShieldAlert className="h-3 w-3" />
+                                                        Not Verified
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {!user.isEmailVerified && (
+                                            <Button
+                                                type="button"
+                                                variant="default"
+                                                size="sm"
+                                                onClick={handleResendVerification}
+                                                disabled={sendingVerification}
+                                                className="flex-shrink-0"
+                                            >
+                                                {sendingVerification ? (
+                                                    <>
+                                                        <span className="mr-2">Sending...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Send className="h-4 w-4 mr-2" />
+                                                        Verify Email
+                                                    </>
+                                                )}
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {!user.isEmailVerified && (
+                                        <p className="text-xs text-muted-foreground mt-3">
+                                            Please verify your email address to secure your account and access all features.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Profile Fields */}
                             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="batch">Batch/Year *</Label>
