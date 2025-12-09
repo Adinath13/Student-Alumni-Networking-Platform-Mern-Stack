@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Edit, Save, X, Mail, Briefcase, GraduationCap, Calendar } from 'lucide-react';
+import { Edit, Save, X, Mail, Briefcase, GraduationCap, Calendar, ShieldCheck, ShieldAlert, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const ProfilePage = () => {
@@ -17,6 +17,7 @@ const ProfilePage = () => {
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({});
+    const [sendingVerification, setSendingVerification] = useState(false);
 
     useEffect(() => {
         fetchProfile();
@@ -92,6 +93,26 @@ const ProfilePage = () => {
                 title: "Error",
                 description: errorMessage,
             });
+        }
+    };
+
+    const handleResendVerification = async () => {
+        setSendingVerification(true);
+        try {
+            const { data } = await axios.post('/auth/resend-verification', { email: user.email });
+            toast({
+                title: "Success",
+                description: data.message || "Verification email sent! Please check your inbox.",
+            });
+        } catch (error) {
+            console.error("Error sending verification email:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.response?.data?.message || "Failed to send verification email. Please try again.",
+            });
+        } finally {
+            setSendingVerification(false);
         }
     };
 
@@ -269,7 +290,38 @@ const ProfilePage = () => {
                                     <Mail className="h-5 w-5 text-primary mt-0.5" />
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-muted-foreground">Email</p>
-                                        <p className="text-sm text-foreground truncate">{profile.user?.email}</p>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <p className="text-sm text-foreground truncate">{profile.user?.email}</p>
+                                            {user.isEmailVerified ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                    <ShieldCheck className="h-3 w-3" />
+                                                    Verified
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                                    <ShieldAlert className="h-3 w-3" />
+                                                    Unverified
+                                                </span>
+                                            )}
+                                        </div>
+                                        {!user.isEmailVerified && (
+                                            <Button
+                                                variant="link"
+                                                size="sm"
+                                                className="h-auto p-0 mt-1 text-xs"
+                                                onClick={handleResendVerification}
+                                                disabled={sendingVerification}
+                                            >
+                                                {sendingVerification ? (
+                                                    <>Sending...</>
+                                                ) : (
+                                                    <>
+                                                        <Send className="h-3 w-3 mr-1" />
+                                                        Verify Email
+                                                    </>
+                                                )}
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex items-start space-x-3 p-4 bg-muted/30 rounded-lg">
