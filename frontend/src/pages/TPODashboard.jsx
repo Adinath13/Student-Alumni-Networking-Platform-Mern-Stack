@@ -20,6 +20,7 @@ import {
     DollarSign,
     BarChart3
 } from 'lucide-react';
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const TPODashboard = () => {
     const { user } = useAuth();
@@ -148,6 +149,8 @@ const TPODashboard = () => {
                 <h1 className="text-3xl font-bold">TPO Dashboard</h1>
                 <p className="mt-2 text-indigo-100">Manage placements, students, and recruitment activities</p>
             </div>
+
+            <EmailVerificationBanner />
 
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">

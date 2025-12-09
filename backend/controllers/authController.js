@@ -164,22 +164,14 @@ const loginUser = async (req, res) => {
         const isPasswordMatch = await user.matchPassword(password);
 
         if (user && isPasswordMatch) {
-            // Check if email is verified
-            if (!user.isEmailVerified) {
-                console.log('❌ Login failed: Email not verified');
-                return res.status(401).json({
-                    message: 'Please verify your email before logging in',
-                    emailNotVerified: true,
-                    email: user.email,
-                });
-            }
-
-            console.log('✅ Login successful:', { id: user._id, email: user.email, role: user.role });
+            // Email verification is now optional - users can verify from their profile
+            console.log('✅ Login successful:', { id: user._id, email: user.email, role: user.role, emailVerified: user.isEmailVerified });
             res.json({
                 _id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                isEmailVerified: user.isEmailVerified,
                 token: generateToken(user._id),
             });
         } else {

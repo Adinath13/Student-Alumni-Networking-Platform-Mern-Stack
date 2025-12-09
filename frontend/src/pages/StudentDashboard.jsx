@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, Briefcase, Calendar, ArrowRight } from "lucide-react"
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const StudentDashboard = () => {
     const { user } = useAuth();
@@ -15,6 +16,8 @@ const StudentDashboard = () => {
                     Welcome back, {user?.name}. Here's an overview of your network.
                 </p>
             </div>
+
+            <EmailVerificationBanner />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>

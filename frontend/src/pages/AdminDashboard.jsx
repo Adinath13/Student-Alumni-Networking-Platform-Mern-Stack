@@ -4,6 +4,7 @@ import axios from '../utils/axios';
 import { Users, Briefcase, Calendar, DollarSign, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({
@@ -52,6 +53,8 @@ const AdminDashboard = () => {
                     Overview of platform activity and quick actions.
                 </p>
             </div>
+
+            <EmailVerificationBanner />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {cards.map((card) => (

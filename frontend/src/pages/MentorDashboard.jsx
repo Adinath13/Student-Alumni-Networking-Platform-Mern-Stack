@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const MentorDashboard = () => {
     const { user } = useAuth();
@@ -138,6 +139,8 @@ const MentorDashboard = () => {
                     Manage your mentorship requests and active mentees
                 </p>
             </div>
+
+            <EmailVerificationBanner />
 
             {/* Mentor Stats */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
