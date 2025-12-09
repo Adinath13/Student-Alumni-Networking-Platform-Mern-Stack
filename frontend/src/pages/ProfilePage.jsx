@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Edit, Save, X, Mail, Briefcase, GraduationCap, Calendar, ShieldCheck, ShieldAlert, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const ProfilePage = () => {
     const { user } = useAuth();
@@ -179,6 +180,8 @@ const ProfilePage = () => {
                     )}
                 </Button>
             </div>
+
+            <EmailVerificationBanner />
 
             {isEditing ? (
                 <Card>
