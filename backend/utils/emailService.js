@@ -17,7 +17,7 @@ const createTransporter = () => {
 
     // Mailgun uses SMTP
     if (emailService.toLowerCase() === 'mailgun') {
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
             host: process.env.MAILGUN_SMTP_HOST || 'smtp.mailgun.org',
             port: parseInt(process.env.MAILGUN_SMTP_PORT || '587'),
             secure: false,
@@ -30,7 +30,7 @@ const createTransporter = () => {
 
     // Gmail - use port 465 (SSL) for better compatibility with Render
     if (emailService.toLowerCase() === 'gmail') {
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
             host: 'smtp.gmail.com',
             port: 465,
             secure: true, // use SSL
@@ -42,7 +42,7 @@ const createTransporter = () => {
     }
 
     // Other services
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         service: emailService,
         auth: {
             user: process.env.EMAIL_USER,
