@@ -1,13 +1,30 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 // Check if email service is configured
 const isEmailConfigured = () => {
+    const emailService = (process.env.EMAIL_SERVICE || 'gmail').toLowerCase();
+
+    if (emailService === 'resend') {
+        return process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim() !== '';
+    }
+
+    // For Gmail/SMTP
     const hasEmailUser = process.env.EMAIL_USER && process.env.EMAIL_USER.trim() !== '';
     const hasEmailPassword = process.env.EMAIL_PASSWORD && process.env.EMAIL_PASSWORD.trim() !== '';
     return hasEmailUser && hasEmailPassword;
 };
 
-// Create reusable transporter object using SMTP transport
+// Initialize Resend client (lazy initialization)
+let resendClient = null;
+const getResendClient = () => {
+    if (!resendClient && process.env.RESEND_API_KEY) {
+        resendClient = new Resend(process.env.RESEND_API_KEY);
+    }
+    return resendClient;
+};
+
+// Create reusable transporter object using SMTP transport (for Gmail)
 const createTransporter = () => {
     if (!isEmailConfigured()) {
         throw new Error('Email service is not configured. Please set EMAIL_USER and EMAIL_PASSWORD environment variables.');
@@ -265,6 +282,85 @@ const getOTPEmailTemplate = (name, otp) => `
 </html>
 `;
 
+// Send email using Resend API
+const sendEmailViaResend = async (to, subject, html) => {
+    try {
+        const resend = getResendClient();
+        const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+
+        const { data, error } = await resend.emails.send({
+            from: `Student Network <${fromEmail}>`,
+            to: [to],
+            subject: subject,
+            html: html,
+        });
+
+        if (error) {
+            console.error('❌ Resend API error:', error);
+            return {
+                success: false,
+                error: 'EMAIL_SEND_FAILED',
+                message: error.message
+            };
+        }
+
+        console.log('✅ Email sent via Resend:', { to, id: data.id });
+        return {
+            success: true,
+            message: 'Email sent successfully',
+            id: data.id
+        };
+    } catch (error) {
+        console.error('❌ Error sending email via Resend:', error);
+        return {
+            success: false,
+            error: 'EMAIL_SEND_FAILED',
+            message: error.message
+        };
+    }
+};
+
+// Send email using SMTP (Gmail)
+const sendEmailViaSMTP = async (to, subject, html) => {
+    try {
+        const transporter = createTransporter();
+        const fromEmail = process.env.EMAIL_USER;
+
+        const mailOptions = {
+            from: `"Student Network" <${fromEmail}>`,
+            to: to,
+            subject: subject,
+            html: html,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent via SMTP:', { to });
+
+        return {
+            success: true,
+            message: 'Email sent successfully'
+        };
+    } catch (error) {
+        console.error('❌ Error sending email via SMTP:', error);
+        return {
+            success: false,
+            error: 'EMAIL_SEND_FAILED',
+            message: error.message
+        };
+    }
+};
+
+// Generic email sender (chooses between Resend and SMTP)
+const sendEmail = async (to, subject, html) => {
+    const emailService = (process.env.EMAIL_SERVICE || 'gmail').toLowerCase();
+
+    if (emailService === 'resend') {
+        return await sendEmailViaResend(to, subject, html);
+    } else {
+        return await sendEmailViaSMTP(to, subject, html);
+    }
+};
+
 // Send verification email
 const sendVerificationEmail = async (email, name, verificationToken) => {
     try {
@@ -278,23 +374,10 @@ const sendVerificationEmail = async (email, name, verificationToken) => {
             };
         }
 
-        const transporter = createTransporter();
         const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+        const html = getVerificationEmailTemplate(name, verificationUrl);
 
-        const mailOptions = {
-            from: `"Student Network" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: '✉️ Verify Your Email - Student Network',
-            html: getVerificationEmailTemplate(name, verificationUrl),
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log('✅ Verification email sent successfully to:', email);
-
-        return {
-            success: true,
-            message: 'Verification email sent successfully'
-        };
+        return await sendEmail(email, '✉️ Verify Your Email - Student Network', html);
     } catch (error) {
         console.error('❌ Error sending verification email:', error);
         return {
@@ -317,22 +400,9 @@ const sendOTPEmail = async (email, name, otp) => {
             };
         }
 
-        const transporter = createTransporter();
+        const html = getOTPEmailTemplate(name, otp);
 
-        const mailOptions = {
-            from: `"Student Network" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: '🔐 Password Reset OTP - Student Network',
-            html: getOTPEmailTemplate(name, otp),
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log('✅ OTP email sent successfully to:', email);
-
-        return {
-            success: true,
-            message: 'OTP email sent successfully'
-        };
+        return await sendEmail(email, '🔐 Password Reset OTP - Student Network', html);
     } catch (error) {
         console.error('❌ Error sending OTP email:', error);
         return {
