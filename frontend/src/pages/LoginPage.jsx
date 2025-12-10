@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Mail } from "lucide-react"
+import { API_URL } from '@/config';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -36,7 +37,7 @@ const LoginPage = () => {
     const handleResendVerification = async () => {
         setIsResending(true);
         try {
-            const response = await fetch('http://localhost:5000/api/auth/resend-verification', {
+            const response = await fetch(`${API_URL}/auth/resend-verification`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -151,4 +152,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-

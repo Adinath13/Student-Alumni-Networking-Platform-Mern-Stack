@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Mail, ArrowLeft } from "lucide-react"
+import { API_URL } from '@/config';
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ const ForgotPasswordPage = () => {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+            const response = await fetch(`${API_URL}/auth/forgot-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

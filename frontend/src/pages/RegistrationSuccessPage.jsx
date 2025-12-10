@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mail, CheckCircle, Clock, RefreshCw } from "lucide-react";
+import { API_URL } from '@/config';
 
 const RegistrationSuccessPage = () => {
     const [countdown, setCountdown] = useState(60);
@@ -38,7 +39,7 @@ const RegistrationSuccessPage = () => {
         setResendMessage('');
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/resend-verification', {
+            const response = await fetch(`${API_URL}/auth/resend-verification`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -134,8 +135,8 @@ const RegistrationSuccessPage = () => {
 
                                 {resendMessage && (
                                     <div className={`p-3 rounded text-sm ${resendMessage.includes('✅')
-                                            ? 'bg-green-50 text-green-700 border border-green-200'
-                                            : 'bg-red-50 text-red-700 border border-red-200'
+                                        ? 'bg-green-50 text-green-700 border border-green-200'
+                                        : 'bg-red-50 text-red-700 border border-red-200'
                                         }`}>
                                         {resendMessage}
                                     </div>

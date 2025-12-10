@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, XCircle, Mail } from "lucide-react";
+import { API_URL } from '@/config';
 
 const VerifyEmailPage = () => {
     const [status, setStatus] = useState('verifying'); // verifying, success, error
@@ -13,7 +14,7 @@ const VerifyEmailPage = () => {
     useEffect(() => {
         const verifyEmail = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/auth/verify-email/${token}`);
+                const response = await fetch(`${API_URL}/auth/verify-email/${token}`);
                 const data = await response.json();
 
                 if (response.ok && data.success) {
