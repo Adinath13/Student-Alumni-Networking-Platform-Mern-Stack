@@ -1,18 +1,26 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, XCircle, Mail } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Mail, ArrowRight } from "lucide-react";
 import { API_URL } from '@/config';
+import { useAuth } from '@/context/AuthContext';
 
 const VerifyEmailPage = () => {
     const [status, setStatus] = useState('verifying'); // verifying, success, error
     const [message, setMessage] = useState('');
     const { token } = useParams();
     const navigate = useNavigate();
+    const { refreshUser } = useAuth();
 
     useEffect(() => {
         const verifyEmail = async () => {
+            if (!token) {
+                setStatus('error');
+                setMessage('Invalid verification link.');
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/auth/verify-email/${token}`);
                 const data = await response.json();
@@ -20,6 +28,21 @@ const VerifyEmailPage = () => {
                 if (response.ok && data.success) {
                     setStatus('success');
                     setMessage(data.message);
+
+                    // Auto-login logic
+                    if (data.token) {
+                        localStorage.setItem('token', data.token);
+                        await refreshUser();
+
+                        // Redirect based on role after a short delay
+                        setTimeout(() => {
+                            const role = data.user?.role;
+                            if (role === 'admin') navigate('/admin-dashboard');
+                            else if (role === 'tpo') navigate('/tpo-dashboard');
+                            else if (role === 'alumni') navigate('/alumni-dashboard');
+                            else navigate('/student-dashboard');
+                        }, 2000);
+                    }
                 } else {
                     setStatus('error');
                     setMessage(data.message || 'Verification failed');
@@ -31,13 +54,12 @@ const VerifyEmailPage = () => {
             }
         };
 
-        if (token) {
-            verifyEmail();
-        }
-    }, [token]);
+        verifyEmail();
+    }, [token, navigate, refreshUser]);
 
-    const handleLoginRedirect = () => {
-        navigate('/login');
+    const handleDashboardRedirect = () => {
+        // Fallback redirect if auto-redirect doesn't trigger or user clicks button
+        navigate('/');
     };
 
     return (
@@ -67,11 +89,12 @@ const VerifyEmailPage = () => {
                                 </div>
                                 <h3 className="text-2xl font-bold text-green-600">Success!</h3>
                                 <p className="text-center text-gray-600">{message}</p>
+                                <p className="text-sm text-gray-500">Redirecting you to your dashboard...</p>
                                 <Button
-                                    onClick={handleLoginRedirect}
+                                    onClick={handleDashboardRedirect}
                                     className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 rounded-lg shadow-lg mt-4"
                                 >
-                                    Go to Login
+                                    Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </div>
                         )}
@@ -92,7 +115,7 @@ const VerifyEmailPage = () => {
                                         Resend Verification Email
                                     </Button>
                                     <Button
-                                        onClick={handleLoginRedirect}
+                                        onClick={() => navigate('/login')}
                                         variant="outline"
                                         className="w-full border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 font-bold py-3 rounded-lg"
                                     >

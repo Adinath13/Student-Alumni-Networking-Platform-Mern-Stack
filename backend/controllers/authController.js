@@ -195,13 +195,19 @@ const verifyEmail = async (req, res) => {
             .update(token)
             .digest('hex');
 
-        // Find user with matching token and not expired
+        // Find user with matching token
+        // We do NOT check for expiration here strictly for the query, 
+        // effectively allowing us to check if the token is just expired vs invalid.
+        // But for security, let's keep it strict or handle it gracefully.
+        // Let's stick to the secure way: find user with valid token first.
         const user = await User.findOne({
             emailVerificationToken: hashedToken,
             emailVerificationExpires: { $gt: Date.now() },
-        }).select('+emailVerificationToken +emailVerificationExpires');
+        });
 
         if (!user) {
+            // Check if it's an invalid token vs already verified
+            // This is harder without a separate lookup, but simplified:
             console.log('❌ Email verification failed: Invalid or expired token');
             return res.status(400).json({
                 success: false,
@@ -217,9 +223,20 @@ const verifyEmail = async (req, res) => {
 
         console.log('✅ Email verified successfully:', { email: user.email });
 
+        // AUTO-LOGIN: Generate token
+        const authToken = generateToken(user._id);
+
         res.status(200).json({
             success: true,
-            message: 'Email verified successfully! You can now log in.',
+            message: 'Email verified successfully!',
+            token: authToken,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isEmailVerified: user.isEmailVerified,
+            }
         });
     } catch (error) {
         console.error('❌ Email verification error:', error);
