@@ -8,7 +8,7 @@ Go to your **Backend Web Service** on Render → Environment tab → Add these:
 
 ```bash
 # 1. MongoDB Connection (CRITICAL - Must include database name!)
-MONGO_URI=mongodb+srv://adinathhanumantgore_db_user:rqSZw5DMChpP8PaC@cluster0.eyuoilj.mongodb.net/alumniprofiles?retryWrites=true&w=majority&appName=Cluster0
+MONGO_URI= //USE YOUR OWN
 
 # 2. CORS Origin (CRITICAL - Must match your frontend URL EXACTLY!)
 # Replace with your actual frontend URL from Render
