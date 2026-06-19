@@ -35,10 +35,10 @@ This guide explains how to set up Brevo as your email service. This is a great a
 This is the **most important step** to send emails without a domain.
 
 1.  Go to **[Senders & IPs](https://app.brevo.com/settings/senders)**.
-2.  You should see your signup email (e.g., `adixxx.0x69@gmail.com`) already listed.
+2.  You should see your signup email (e.g., `a@gmail.com`) already listed.
 3.  If it says "Verified", you are good!
 4.  If not, click "Verify" and check your inbox.
-5.  **Note:** This email (`adixxx.0x69@gmail.com`) will be the `EMAIL_FROM` address.
+5.  **Note:** This email (`a@gmail.com`) will be the `EMAIL_FROM` address.
 
 ---
 
@@ -49,7 +49,7 @@ Update your local `.env` file to test Brevo:
 ```env
 EMAIL_SERVICE=brevo
 BREVO_API_KEY=xkeysib-your-long-api-key-here
-EMAIL_FROM=adixxx.0x69@gmail.com
+EMAIL_FROM=a@gmail.com
 ```
 
 *(Note: `EMAIL_FROM` must exactly match the verified sender in Brevo)*.
