@@ -2,7 +2,7 @@
 
 A comprehensive, full-stack Alumni Management Platform built with the MERN stack (MongoDB, Express, React, Node.js) featuring modern UI/UX, dark mode, and extensive functionality.
 
-THESE IS LINK OF PRODCUTION READY PROJECT : https://studentnetwork-mrak.onrender.com
+THESE IS THE LINK OF PRODCUTION READY PROJECT : https://studentnetwork-mrak.onrender.com
 
 ## ✨ Features
 
