@@ -1,4 +1,4 @@
-# MERN STUDENT Alumni NETWORKING  - Complete Platform
+# MERN STUDENT ALUMNI NETWORKING  - Complete Platform
 
 A comprehensive, full-stack Alumni Management Platform built with the MERN stack (MongoDB, Express, React, Node.js) featuring modern UI/UX, dark mode, and extensive functionality.
 
