@@ -272,7 +272,3 @@ Fully responsive design that works on:
 
 This project is licensed under the MIT License.
 
-## 👥 Contributors
-
-Built with ❤️ by the Alumni Network Team
-
